@@ -5,7 +5,7 @@ Rebol (2) object that provides some Quickbase API access
 
 Spending a few months working with Quickbase APIs led me to write one in Rebol.  I began to write it just like ALL the other APIs -- simply copying the functions available through Quickbase's HTTP API.  Then, while I was looking at RebDB, I got the idea to do something more SQL-like.
 
-rebol-quickbase-api provides several functions you can use to interact with Quickbase in a much more convenient way than Quickbase.
+rebol-quickbase-api provides several functions you can use to interact with Quickbase in a much more convenient way than the native API.
 
 qb-connect - authenticate to your Quickbase application
 qb-describe - get metadata about the application or a table
@@ -24,7 +24,22 @@ qb-connect appid [host-url user-email "password" apptoken]
 ~~~
 >> qb-connect bjxajeka3 [https://mydomain.quickbase.com qbuser@mydomain.com "mypassword" caks25xdaxugwsbvwn2b9byr833b]
 GET https://mydomain.quickbase.com/db/main?act=API_Authenticate&username=qbuser@mydomain.com&password=mypassword&hours=24&apptoken=caks25xdaxugwsbvwn2b9byr833b&ticket=none
-connecting to: westower.quickbase.com
+connecting to: mydomain.quickbase.com
+>>
+~~~
+
+You can also set the host on the quickbase object before connecting
+
+~~~
+>> do %qb.r
+Script: "Quickbase SQL Client API" (10-Oct-2013)
+== ["The quickbase API is now loaded." "host: none^/hist: []^/"]
+>> quickbase/host: https://mydomain.quickbase.com
+== https://mydomain.quickbase.com
+>> qb-connect bjxajeka3 [qbuser@mydomain.com "mypassword" caks25xdaxugwsbvwn2b9byr833b]
+GET https://mydomain.quickbase.com/db/main?act=API_Authenticate&username=qbuser@mydomain.com&password=mypassword&hours=24&apptoken=caks25xdaxugwsbvwn2b9byr833b&ticket=none
+connecting to: mydomain.quickbase.com
+>>
 ~~~
 
 #Describe the schema of a Quickbase application or table
