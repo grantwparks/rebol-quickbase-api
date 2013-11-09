@@ -22,8 +22,8 @@ The last 2 barely function right now; they do the job, but there's several hardc
 qb-connect appid [host-url user-email "password" apptoken]
 
 ~~~
->> qb-connect bhxujtka4 [https://mydomain.quickbase.com qbuser@mydomain.com "mypassword" caks25tdaxugwsbv5n2b9byr833b]
-GET https://westower.quickbase.com/db/main?act=API_Authenticate&username=gparks@westower.com&password=Gj1-M0tt&hours=24&apptoken=caks25tdaxugwsbv5n2b9byr833b&ticket=none
+>> qb-connect bjxajeka3 [https://mydomain.quickbase.com qbuser@mydomain.com "mypassword" caks25xdaxugwsbvwn2b9byr833b]
+GET https://mydomain.quickbase.com/db/main?act=API_Authenticate&username=qbuser@mydomain.com&password=mypassword&hours=24&apptoken=caks25xdaxugwsbvwn2b9byr833b&ticket=none
 connecting to: westower.quickbase.com
 ~~~
 
