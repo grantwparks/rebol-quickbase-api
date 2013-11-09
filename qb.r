@@ -26,12 +26,11 @@ REBOL [
 	{
 		qb is a simple object consisting of properties that might 	
 			* have a shared value across all QB apps
-			* be expected to exist in all QB apps
 			* be overriden with app instance values, through make from the existing
-		qb is set with a use [][] construct to hide all the local values and the result
-		of the 2nd block becomes qb.  It's sort of like the JS module pattern.
+		quickbase is set with a use [][] construct to hide all the local values and the result
+		of the 2nd block becomes quickbase.  It's sort of like the JS module pattern.
 
-		The qb functions are set in qb's body.  I opted to make the user functions global instead
+		The qb functions are set in quickbase's body.  I opted to make the user functions global instead
 		of instance functions of the app connection, following RebDB.  In fact, I give 
 		total credit for the API design and inspiration to go beyond the Quickbase HTTP
 		API to RebDB.
@@ -42,9 +41,6 @@ REBOL [
 unless value? 'load-xml [do http://reb4.me/r/altxml.r]
 unless value? 'system.r [do %../lib/system.r]
 
-; use [freeme][
-; 	if all [value? 'qb freeme: select qb 'things][print "freeing..." [forall freeme [print freeme/1]]]   ; clear qb/things]
-; ]
 quickbase: use [
 	api-header
 	; api-response
@@ -92,67 +88,16 @@ quickbase: use [
 	]
 
 	api-header: compose/deep [header [Accept: "application/xml" ]] 
-	reserved-words:	[	; 'rowid must appear first as 'sql relies on this
-		rowid avg by count desc distinct explain from group having header into joins max min on order replaces set std sum table to values where with
-	]
-
-	parse-where: use [] [[
-		clause: [column operator value]
-		column: [set column' word! (print column')]
-		operator: [set operator' op!]
-		value: [any-type]
-	]]
 
 	;	----------------------------------------
 	;		Helper functions
 	;	----------------------------------------
-	url-encode: func [
-	    "URL-encode a string" 
-	    data "String to encode" 
-	    /local new-data
-	] [
-		data: to-string data
-	    new-data: make string! "" 
-	    normal-char: charset [
-	        #"A" - #"Z" #"a" - #"z" 
-	        #"@" #"." #"*" #"-" #"_" 
-	        #"0" - #"9"
-	    ] 
-	    ; if not string? data [return new-data] 
-	    forall data [
-	        append new-data either find normal-char first data [
-	            first data
-	        ] [
-	            rejoin ["%" to-string skip tail (to-hex to-integer first data) -2]
-	        ]
-	    ] 
-	    new-data
-	] 
 
 	qb-fieldify: func[str [string!] search [string!] nc [char!] /local newstr][
 		newstr: copy str
 		forall search [replace/all newstr first search nc]
 		lowercase newstr
 	]
-
-	; encode-predicate: func [
-	; 	predicate [any-type!] "Search condition(s)"
-	; 	/local 
-	; ][
-	; 	parse predicate parse-where/clause
-	; 	return none 
-
-	; 	either predicate [
-	; 		ops: [= EX < LT][= TV < LT]
-	; 		parse/all predicate [set mycol word! set op word! set value string!]
-	; 		c1: qb-table/columns/:mycol/4
-	; 		print ["a" c1]
-	; 		prin "B " probe select dataTypeConversions/:c1
-	; 		join "%7B" [c1/1 "." op ".'" value "'%7D"]
-	; 	][
-	; 		none
-	; 	]
-	; ]
 
 	make-date: func [
 		epoch [string! integer!]
@@ -180,9 +125,7 @@ quickbase: use [
 			result: intersect columns: to-block columns qb-table/columns
 			columns: difference columns result
 			if not empty? columns [print ["missed" columns]]
-			; if (columns: to-block columns) <> intersect columns qb-table/columns [
-			; 	to-error "Invalid select column"
-			; ]
+log-app ["requested columns" columns]
 		]
 	]
 
@@ -303,7 +246,6 @@ quickbase: use [
 		]
 	]
 
-; [any into [set address string! set fax__ string! (buffer: insert/only buffer reduce [address either empty? fax__ [none][to-issue replace/all replace replace fax__ "(" "" ")" "" #" " #"-"]])]]
 	fetch: func [
 		"Fetches all rows of selected column(s)"
 		query-columns [block!]
@@ -417,55 +359,21 @@ quickbase: use [
 	;	----------------------------------------
 	;		Row Retrieval
 	;	----------------------------------------
-	set 'qb-select function [
+	set 'qb-select func [
 		{Returns columns and rows from a table.}
 		'columns [function! word! block!] "Column(s) to fetch, * for all"
 		'table [word! path!]
-		/where predicate [any-type!] "Search condition(s)"
-		/joins
-			query-block [block!] "Details query"
-			'on-columns [word! block!] "Master column(s) to join on"
-		/replaces
-			'lookup-columns [word! block!] "Column(s) to replace"
-			'lookup-tables [word! block!] "Lookup table(s)"
-		/order 'by-columns [word! block!] "Column(s) to sort by"
-		/desc "Reverse sort"
-		/distinct "Sorted unique rows"
-		/count "Count aggregate"
-		/min "Minimum aggregate"
-		/max "Maximum aggregate"
-		/sum "Summation aggregate"
-		/avg "Average aggregate"
-		/std "Standard deviation aggregate"
-		/group 'grp-columns [word! block!] "Column(s) to group by"
-		/having grp-predicate [block!] "Aggregate condition(s)"
 		/limit max-rows [integer!] "Maximum rows to return"
-		/header "First row will be column headers"
 	][
-		; no locals yet
-	][
-		memuse/clr qb-select
-		if all [desc not order][to-error "desc requires order by"]
-		if all [having not group][to-error "having requires group by"]
-		if all [group not any [count min max sum avg std]][to-error "group by requires an aggregate"]
-		if all [distinct group][to-error "cannot use distinct in conjunction with group by"]
-		if all [joins group][to-error "cannot use joins with group by"]
-
-		; prin "qb-select " ?? table
 		open-object table
-
 		requested-columns columns
 
 		;	ensure columns is a block of valid column names
 		either columns = '* [
-			; columns: collect [foreach [colname colmetadata] qb-table/columns [keep colname]]
 			columns: extract qb-table/columns 2
 		][
 			;column names should be allowed as "Big Quickbase Field Name"
 			if (unique columns: to-block columns) <> intersect columns qb-table/columns [
-				print "intersect" 
-				probe columns 
-				probe intersect columns qb-table/columns
 				to-error join "Invalid select column" [difference columns intersect columns qb-table/columns]
 			]
 		]
@@ -498,4 +406,12 @@ quickbase: use [
 	context [host: none hist: make block! 50]
 ]
 
-reduce ["The quickbase API is now loaded." form quickbase]
+log-app ["The quickbase API is now loaded." form quickbase]
+print {
+... available functions ...
+qb-connect appid [host-url user "password" optional apptoken] - authenticate to your Quickbase application
+qb-describe appid | dbid - get metadata about the application or a table
+qb-select[/limit] columns dbid [max-rows] - select rows of columns from a table
+qb-update dbid columns values record-id - update row(s)
+qb-alter [column [choices [choice1 choice2...] fieldproperty propertyvalue...]...] - alter the schema of a table
+}

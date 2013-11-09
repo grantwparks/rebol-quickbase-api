@@ -7,17 +7,31 @@ Spending a few months working with Quickbase APIs led me to write one in Rebol. 
 
 rebol-quickbase-api provides several functions you can use to interact with Quickbase in a much more convenient way than the native API.
 
-qb-connect - authenticate to your Quickbase application
-qb-describe - get metadata about the application or a table
-qb-select - select rows of columns from a table
-qb-update - update row(s)
-qb-alter - alter the schema of a table
+>> do %qb.r
+Script: "Quickbase SQL Client API" (10-Oct-2013)
+[9-Nov-2013/9:43:47-7:00 0 [175.5 KB] none [5.2 MB] ["The quickbase API is now loaded." "host: none^/hist: []^/"]]
+
+... available functions ...
+qb-connect appid [host-url user "password" optional apptoken] - authenticate to your Quickbase application
+qb-describe appid | dbid - get metadata about the application or a table
+qb-select[/limit] columns dbid [max-rows] - select rows of columns from a table
+qb-update dbid columns values record-id - update row(s)
+qb-alter [column [choices [choice1 choice2...] fieldproperty propertyvalue...]...] - alter the schema of a table
+
+>> probe quickbase
+make object! [
+    host: none
+    hist: []
+]
+>>
 
 The last 2 barely function right now; they do the job, but there's several hardcoded parts specific to some needs I had.
 
 %qb.r Defines a single object, quickbase and then defines the qb functions globally for simplicity (another cue I took from RebDB)
 
-#Authenticate to your Quickbase application with qb-connect
+ + + +
+
+#### Authenticate to your Quickbase application with qb-connect
 
 qb-connect appid [host-url user-email "password" apptoken]
 
@@ -42,11 +56,11 @@ connecting to: mydomain.quickbase.com
 >>
 ~~~
 
-#Describe the schema of a Quickbase application or table
+#### Describe the schema of a Quickbase application or table
 
-#Select records from Quickbase tables with qb-select
+#### Select records from Quickbase tables with qb-select
 
-#Edits Quickbase records with qb-update
+#### Edits Quickbase records with qb-update
 
-#Alter a Quickbase table schema
+#### Alter a Quickbase table schema
 
