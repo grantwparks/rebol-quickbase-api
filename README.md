@@ -9,7 +9,7 @@ rebol-quickbase-api provides several functions you can use to interact with Quic
 
 %qb.r Defines a single object named quickbase that provides a template for each Quickbase application you connect to.  It also defines global functions for simplicity (another cue I took from RebDB):
 
-~~~ Rebol
+~~~
 >> do %qb.r
 Script: "Quickbase SQL Client API" (10-Oct-2013)
 [9-Nov-2013/9:43:47-7:00 0 [175.5 KB] none [5.2 MB] ["The quickbase API is now loaded." "host: none^/hist: []^/"]]
