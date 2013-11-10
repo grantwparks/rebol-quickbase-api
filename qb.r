@@ -141,7 +141,7 @@ log-app ["requested columns" columns]
 		if error? set/any 'err try [
 			if not this/host [to error! "No host specified."]
 			insert tail this/hist api-call: rejoin ["/db/" rejoin request this/apptoken "&ticket=" this/ticket]
-			print ['GET join this/host api-call]
+			log-app ['GET join this/host api-call]
 
 			if nohttp [
 				return "<qdbapi><action>API_AddField</action><errcode>0</errcode><errtext>No error</errtext><fid>245</fid><label>operating_in.Fred2</label></qdbapi>"
@@ -150,7 +150,6 @@ log-app ["requested columns" columns]
 			parse api-response: read/custom to-url join this/host api-call api-header
 				[["<?xml" thru <errcode> copy errcode to </errcode> thru <errtext> copy errtext to </errtext> thru <errdetail> copy errdetail to </errdetail>]
 				 | [thru <font color=red size=+1> copy errtext to </font> thru <div id="response_errormsg"> copy errdetail to </div>]]
-			; print ["@" errcode errtext errdetail]
 			if errdetail [to-error reform [errcode errtext errdetail]]
 
 			return api-response
@@ -162,10 +161,7 @@ log-app ["requested columns" columns]
 	open-object: func [
 		object [word! path!] "db or table - 'app-dbid | myDb | 'table-dbid | myDb/table-name | db/table-name	; where myDb was set to qb-connect"
 	][
-		; prin "open-object " probe object
 		clear buffer: head buffer
-		;	table as db/table path needs to be broken up
-		; unless equal? word! type? object [this: get :object/1 object: :object/2]
 		either all [value? object find things object] [
 			prin "things " probe things
 			qb-table: get object qb-table/accessed: now qb-table/accesses: qb-table/accesses + 1
@@ -187,7 +183,6 @@ log-app ["requested columns" columns]
 			dbid [word!]
 			/local procs _
 		][
-			prin "get-schema " probe dbid
 			clear cols: head cols
 			api-response: second load-xml get-query [to-string dbid "?act=API_GetSchema"]
 
@@ -278,7 +273,6 @@ log-app ["requested columns" columns]
 		"Returns db (app) or table information"
 		'object [word! path!] "db or table - 'app-dbid | myDb | 'table-dbid | myDb/table-name | db/table-name	; where myDb was set to qb-connect"
 	][
-		prin "qb-desc " probe object
 		open-object object
 		return qb-table/columns
 	]
