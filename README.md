@@ -12,7 +12,9 @@ rebol-quickbase-api provides several functions you can use to interact with Quic
 ~~~
 >> do %qb.r
 Script: "Quickbase SQL Client API" (10-Oct-2013)
-[9-Nov-2013/9:43:47-7:00 0 [175.5 KB] none [5.2 MB] ["The quickbase API is now loaded." "host: none^/hist: []^/"]]
+connecting to: reb4.me
+Script: "AltXML" (7-Jun-2009)
+Script: "Utility functions for memory and timing" (22-Oct-2013)
 
 ... available functions ...
 qb-connect appid [host-url user "password" optional apptoken] - authenticate to your Quickbase application
@@ -21,6 +23,7 @@ qb-select[/limit] columns dbid [max-rows] - select rows of columns from a table
 qb-update dbid columns values record-id - update row(s)
 qb-alter [column [choices [choice1 choice2...] fieldproperty propertyvalue...]...] - alter the schema of a table
 
+[18:09:09 7E-3 [103.7 KB] [103.7 KB] [5.7 MB] ["The quickbase API is now loaded." "host: none^/hist: []^/"]]
 >> probe quickbase
 make object! [
     host: none
@@ -31,15 +34,16 @@ make object! [
 
 (The qb-update and qb-alter are somewhat functional; they do the job, but there might be some hardcoded parts specific to some needs I had.)
 
+* in the future, hist might allow for transactions, across apps
 ---
 
 #### Authenticate to your Quickbase application with qb-connect
 
 qb-connect appid [host-url user-email "password" apptoken]
 
-Returns a Rebol object representing the Quickbase application.
+Returns a Rebol object representing the Quickbase application.  You can authenticate as different users on the same host (in different Quickbase apps), but not in the same app.
 
-~~~ Rebol
+~~~
 >> foo: qb-connect cjwidfrb1 [https://myqbdomain.quickbase.com user@domain.net.com "passwordstring" dhks25rdaxugwswv5n2b9byr853b]
 GET https://myqbdomain.quickbase.com/db/main?act=API_Authenticate&username=user@domain.net.com&password=passwordstring&hours=24&apptoken=dhks25rdaxugwswv5n2b9byr853b&ticket=none
 connecting to: myqbdomain.quickbase.com
@@ -76,14 +80,14 @@ Notice that a global word has been created for the appid and because I assigned 
 
 You can also set the host on the quickbase object before connecting
 
-~~~Rebol
+~~~
 >> do %qb.r
 Script: "Quickbase SQL Client API" (10-Oct-2013)
 == ["The quickbase API is now loaded." "host: none^/hist: []^/"]
 >> quickbase/host: https://mydomain.quickbase.com
 == https://mydomain.quickbase.com
->> qb-connect bjxajeka3 [qbuser@mydomain.com "mypassword" caks25xdaxugwsbvwn2b9byr833b]
-GET https://mydomain.quickbase.com/db/main?act=API_Authenticate&username=qbuser@mydomain.com&password=mypassword&hours=24&apptoken=caks25xdaxugwsbvwn2b9byr833b&ticket=none
+>> qb-connect bjxajeka3 [qbuser@mydomain.com "mypassword" dyks25rdaxu4wswv5n2t9byr853b]
+GET https://mydomain.quickbase.com/db/main?act=API_Authenticate&username=qbuser@mydomain.com&password=mypassword&hours=24&apptoken=dyks25rdaxu4wswv5n2t9byr853b&ticket=none
 connecting to: mydomain.quickbase.com
 >>
 ~~~
@@ -94,7 +98,10 @@ qb-desc app|table
 
 qb-describe app|table
 
-~~~Rebol
+Returns a Rebol block that describes metadata of the application or table.  This structure will be evolving as internal needs change, so it's informational right now. What that means is it's useful for display purposes, but don't write code that relies on the return structure.
+
+~~~
+
 ~~~
 
 #### Select records from Quickbase tables with qb-select
@@ -103,10 +110,10 @@ qb-select columns table
 
 qb-select/limit columns table nn
 
-~~~Rebol
+~~~
 ~~~
 
-#### Edits Quickbase records with qb-update
+#### Edit Quickbase records with qb-update
 
 #### Alter a Quickbase table schema
 
